@@ -1,0 +1,21 @@
+{
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "lib",
+    "target": "esnext",
+    "types": [
+      "node",
+      "mocha",
+      "chai"
+    ],
+    "noImplicitAny": false,
+    "removeComments": true
+  },
+  "include": [
+    "src/*.ts",
+    "src/**/*.ts",
+    "test/*.ts",
+    "test/**/*.ts"
+  ]
+}

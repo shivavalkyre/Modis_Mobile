@@ -1,0 +1,163 @@
+﻿Build1=Default,b4a.example
+Build2=modis,com.modis
+File1=Absensi.bal
+File10=layoutdrawer.bal
+File11=LayoutIsIDrawer.bal
+File12=LayoutScroll.bal
+File13=Login.png
+File14=Logo Perhubungan FLAT.png
+File15=logo_modis.png
+File16=Logout.png
+File17=Mask Group 1.png
+File18=poppins-regular.ttf
+File19=refer1.png
+File2=background.png
+File20=refer2.png
+File21=Register.bal
+File22=sidebar.png
+File3=Group 286.png
+File4=Home.bal
+File5=Icon feather-home.png
+File6=Icon feather-user.png
+File7=Kala Jivam Asti FLAT.png
+File8=kapal.png
+File9=Layout.bal
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup11=Default Group
+FileGroup12=Default Group
+FileGroup13=Default Group
+FileGroup14=Default Group
+FileGroup15=Default Group
+FileGroup16=Default Group
+FileGroup17=Default Group
+FileGroup18=Default Group
+FileGroup19=Default Group
+FileGroup2=Default Group
+FileGroup20=Default Group
+FileGroup21=Default Group
+FileGroup22=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+Library1=appcompat
+Library10=okhttputils2
+Library2=asradiobutton
+Library3=b4xdrawer
+Library4=camera2
+Library5=core
+Library6=javaobject
+Library7=json
+Library8=runtimepermissions
+Library9=xui
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="14" android:targetSdkVersion="29"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'CreateResourceFromFile(Macro, Themes.LightTheme)~\n~SetApplicationAttribute(android:theme, "@style/MyAppTheme")~\n~'CreateResourceFromFile(Macro, Themes.LightTheme)~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~    <style name="MyAppTheme" parent="Theme.AppCompat.Light.NoActionBar">~\n~        <item name="colorPrimary">#DE6D00</item>~\n~        <item name="colorPrimaryDark">#DE6D00</item>~\n~        <item name="colorAccent">#FFFFFF</item>~\n~        <item name="windowNoTitle">true</item>~\n~        <item name="windowActionBar">false</item>~\n~    </style>~\n~</resources>~\n~)~\n~AddPermission(android.permission.CAMERA) ' Required to be able to access the camera device.~\n~AddPermission(android.permission.CAPTURE_AUDIO_OUTPUT) ' Allows an application to capture audio output.~\n~AddPermission(android.permission.CAPTURE_SECURE_VIDEO_OUTPUT) ' Allows an application to capture secure video output.~\n~AddPermission(android.permission.CAPTURE_VIDEO_OUTPUT) ' Allows an application to capture video output.~\n~SetApplicationAttribute(android:usesCleartextTraffic, "true")~\n~'End of default text.~\n~
+Module1=Absensi
+Module2=CamEx2
+Module3=general
+Module4=Home
+Module5=Register
+Module6=Starter
+NumberOfFiles=22
+NumberOfLibraries=10
+NumberOfModules=6
+Version=11
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: Modis
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: false
+	#IncludeTitle: false
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+	Private xui As XUI
+	Private rp As RuntimePermissions
+	Private url_login As String ="http://192.168.1.10:3011/api/v2/modis/account/login"
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	Private EditText1 As EditText
+	Private EditText2 As EditText
+	Private Label6 As Label
+	Private Button1 As Button
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	
+	For Each permission As String In Array(rp.PERMISSION_CAMERA)
+		rp.CheckAndRequest(permission)
+		Wait For Activity_PermissionResult (permission As String, Result As Boolean)
+		If Result = False Then
+			ToastMessageShow("No permission!", True)
+			Activity.Finish
+			Return
+		End If
+	Next
+	
+	
+	Dim jo As JavaObject
+	Dim window As JavaObject = jo.InitializeContext.RunMethod("getWindow", Null)
+	window.RunMethod("addFlags", Array(Bit.Or(0x00000200, 0x08000000)))
+	Activity.Height = Activity.Height + 24dip
+	Activity.LoadLayout("Layout")
+	general.SetBackgroundTintList(EditText1,Colors.White,Colors.White)
+	general.SetBackgroundTintList(EditText2,Colors.White,Colors.White)
+End Sub
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+
+End Sub
+
+Sub Button1_Click
+	'StartActivity(Home)
+	If EditText1.Text.Length>0 And EditText2.Text.Length>0 Then
+		Dim j As HttpJob
+		
+		Dim parameter As String ="nik="&EditText1.Text&"&password=" & EditText2.Text
+		Log(parameter)
+		j.Initialize("j",Me)
+		j.PostString (url_login,parameter)
+		Wait For (j) JobDone(j As HttpJob)
+		If j.Success Then
+			Log(j.GetString)
+			Dim result As String = j.GetString
+			Dim parser As JSONParser
+			parser.Initialize(result)
+			Dim root As Map = parser.NextObject
+			Dim message As String = root.Get("message")
+			Dim status As Int = root.Get("status")
+			Dim token As String = root.Get("token")
+			StartActivity(Home)
+			Activity.Finish
+		Else
+			'PanelErrorPopup.Color = Colors.ARGB(255,255,118,117)
+			'PanelErrorPopup.SetVisibleAnimated(500,True)
+			'lblErrorLogin.Text="Cannot find user"
+			Log(j.ErrorMessage)
+		End If
+		j.Release
+	End If
+End Sub
+
+Private Sub Label6_Click
+	StartActivity(Register)
+End Sub
